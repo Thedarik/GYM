@@ -74,12 +74,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { CertificateManagement } from "@/components/admin/CertificateManagement"
 import { cn } from "@/lib/utils"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
 
 // TypeScript interfaces
 interface AnalyticsData {
@@ -94,37 +95,29 @@ interface AnalyticsData {
 }
 
 interface Course {
-  id: number
-  title: string
-  description: string
-  students: number
-  totalStudents: number
-  certificates: number
-  startDate: string
-  endDate: string
-  status: "active" | "completed" | "upcoming"
-  progress: number
-  duration: string
-  level: "Beginner" | "Intermediate" | "Advanced"
-  category: string
-  instructor: string
-  lastActivity: string
-  thumbnail: string
+  id: string
+  name: string
+  duration_days: number
+  price: number
+  access_rules?: any
+  freeze_allowed: boolean
+  created_at?: string
+  users_count?: number
 }
 
-interface Student {
-  id: number
+interface ApiUser {
+  id: number | string
   name: string
-  email: string
-  phone: string
-  course: string
-  progress: number
-  enrollDate: string
-  lastActivity: string
-  status: "active" | "completed" | "pending"
-  certificates: number
-  attendance: number
-  avatar: string
+  email: string | null
+  phone: string | null
+  course: string | null
+  progress: number | null
+  enroll_date: string | null
+  last_activity: string | null
+  status: string | null
+  certificates: number | null
+  attendance: number | null
+  avatar: string | null
 }
 
 interface Certificate {
@@ -299,17 +292,17 @@ const certificateTemplates: CertificateTemplate[] = [
 // Sample data with proper typing
 const adminAnalytics: AnalyticsData[] = [
   {
-    name: "Mening Sertifikatlarim",
-    value: 247,
-    change: 15,
+    name: "Abonementlar",
+    value: 0,
+    change: 0,
     trend: "up",
-    icon: <Award className="h-4 w-4" />,
-    description: "Ushbu oyda berilgan",
-    target: 300,
-    percentage: 82
+    icon: <BookOpen className="h-4 w-4" />,
+    description: "Faol tariflar soni",
+    target: 0,
+    percentage: 0
   },
   {
-    name: "Faol O'quvchilar",
+    name: "Faol A'zolar",
     value: 89,
     change: 12,
     trend: "up",
@@ -329,7 +322,7 @@ const adminAnalytics: AnalyticsData[] = [
     percentage: 83
   },
   {
-    name: "T Baeol Kurslar",
+    name: "Faol Abonementlar",
     value: 12,
     change: 3,
     trend: "up",
@@ -340,121 +333,10 @@ const adminAnalytics: AnalyticsData[] = [
   },
 ]
 
-const adminCourses: Course[] = [
-  {
-    id: 1,
-    title: "Frontend Development",
-    description: "React, Next.js va TypeScript asoslari",
-    students: 25,
-    totalStudents: 30,
-    certificates: 18,
-    startDate: "2024-01-15",
-    endDate: "2024-06-15",
-    status: "active",
-    progress: 75,
-    duration: "5 oy",
-    level: "Intermediate",
-    category: "IT",
-    instructor: "Admin User",
-    lastActivity: "2 soat oldin",
-    thumbnail: "/placeholder.svg?height=60&width=60"
-  },
-  {
-    id: 2,
-    title: "Digital Marketing",
-    description: "SMM, SEO va kontentni boshqarish",
-    students: 18,
-    totalStudents: 20,
-    certificates: 15,
-    startDate: "2024-02-01",
-    endDate: "2024-05-01",
-    status: "completed",
-    progress: 100,
-    duration: "3 oy",
-    level: "Beginner",
-    category: "Marketing",
-    instructor: "Admin User",
-    lastActivity: "1 kun oldin",
-    thumbnail: "/placeholder.svg?height=60&width=60"
-  },
-  {
-    id: 3,
-    title: "Graphic Design Basics",
-    description: "Photoshop, Illustrator va dizayn printsiplari",
-    students: 12,
-    totalStudents: 25,
-    certificates: 0,
-    startDate: "2024-06-01",
-    endDate: "2024-08-01",
-    status: "upcoming",
-    progress: 15,
-    duration: "2 oy",
-    level: "Beginner",
-    category: "Design",
-    instructor: "Admin User",
-    lastActivity: "Hali boshlanmagan",
-    thumbnail: "/placeholder.svg?height=60&width=60"
-  },
-]
+// plans from API
+const adminCourses: Course[] = []
 
-const students: Student[] = [
-  {
-    id: 1,
-    name: "Abdullayev Jasur",
-    email: "jasur@gmail.com",
-    phone: "+998 90 123 45 67",
-    course: "Frontend Development",
-    progress: 85,
-    enrollDate: "2024-01-15",
-    lastActivity: "2 soat oldin",
-    status: "active",
-    certificates: 1,
-    attendance: 92,
-    avatar: "/placeholder.svg?height=40&width=40"
-  },
-  {
-    id: 2,
-    name: "Karimova Malika",
-    email: "malika@gmail.com",
-    phone: "+998 91 234 56 78",
-    course: "Digital Marketing",
-    progress: 100,
-    enrollDate: "2024-02-01",
-    lastActivity: "1 kun oldin",
-    status: "completed",
-    certificates: 1,
-    attendance: 98,
-    avatar: "/placeholder.svg?height=40&width=40"
-  },
-  {
-    id: 3,
-    name: "Rakhmonov Bekzod",
-    email: "bekzod@gmail.com",
-    phone: "+998 92 345 67 89",
-    course: "Frontend Development",
-    progress: 45,
-    enrollDate: "2024-01-20",
-    lastActivity: "5 soat oldin",
-    status: "active",
-    certificates: 0,
-    attendance: 78,
-    avatar: "/placeholder.svg?height=40&width=40"
-  },
-  {
-    id: 4,
-    name: "Nazarova Dilnoza",
-    email: "dilnoza@gmail.com",
-    phone: "+998 93 456 78 90",
-    course: "Graphic Design Basics",
-    progress: 15,
-    enrollDate: "2024-06-01",
-    lastActivity: "1 soat oldin",
-    status: "active",
-    certificates: 0,
-    attendance: 89,
-    avatar: "/placeholder.svg?height=40&width=40"
-  },
-]
+// API'dan a'zolar (users) ma'lumotlarini olamiz
 
 const certificatesHistory: Certificate[] = [
   {
@@ -520,22 +402,18 @@ const recentActivities: Activity[] = [
   },
 ]
 
-const assignments: Assignment[] = [
-  { title: "React Components Yaratish", course: "Frontend Development", submitted: 15, total: 25, deadline: "2024-06-20", status: "active" },
-  { title: "SMM Strategiya Rejasi", course: "Digital Marketing", submitted: 18, total: 18, deadline: "2024-06-15", status: "completed" },
-  { title: "Logo Dizayni", course: "Graphic Design", submitted: 5, total: 12, deadline: "2024-06-25", status: "active" },
-]
+// assignments bo'limi olib tashlandi
 
 const reportCards: ReportCard[] = [
-  { title: "O'quvchilar Hisoboti", desc: "Davomad va rivojlanish", icon: <Users className="h-6 w-6" />, color: "bg-blue-500" },
-  { title: "Kurslar Samaradorligi", desc: "Tugallash ko'rsatkichi", icon: <BookOpen className="h-6 w-6" />, color: "bg-green-500" },
+  { title: "A'zolar Hisoboti", desc: "Davomad va rivojlanish", icon: <Users className="h-6 w-6" />, color: "bg-blue-500" },
+  { title: "Abonementlar Samaradorligi", desc: "Faollik ko'rsatkichi", icon: <BookOpen className="h-6 w-6" />, color: "bg-green-500" },
   { title: "Sertifikatlar Statistikasi", desc: "Berilgan sertifikatlar", icon: <Award className="h-6 w-6" />, color: "bg-purple-500" },
   { title: "Topshiriqlar Tahlili", desc: "Baholash natijalari", icon: <FileCheck className="h-6 w-6" />, color: "bg-orange-500" },
   { title: "Moliyaviy Hisobot", desc: "To'lovlar va daromad", icon: <BarChart3 className="h-6 w-6" />, color: "bg-emerald-500" },
   { title: "Umumiy Ko'rsatkichlar", desc: "Barcha metrikalar", icon: <PieChart className="h-6 w-6" />, color: "bg-pink-500" },
 ]
 
-type TabType = "dashboard" | "courses" | "students" | "certificates" | "assignments" | "reports" | "settings"
+type TabType = "dashboard" | "courses" | "students" | "certificates" | "assignments" | "reports" | "finance" | "settings"
 
 // ✅ ASOSIY O'ZGARISH: Bu yerda export qilish kerak
 export function AdminDashboard({ onLogout }: AdminDashboardProps) {
@@ -544,13 +422,129 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
   const [notifications, setNotifications] = useState<number>(5)
   const [searchQuery, setSearchQuery] = useState<string>("")
-  const [currentTime, setCurrentTime] = useState<Date>(new Date())
+  const [currentTime, setCurrentTime] = useState<Date | null>(null)
+  const [mounted, setMounted] = useState<boolean>(false)
+  const [users, setUsers] = useState<ApiUser[]>([])
+  const [usersLoading, setUsersLoading] = useState<boolean>(false)
+  const [usersError, setUsersError] = useState<string>("")
+  const [usersFilterOpen, setUsersFilterOpen] = useState<boolean>(false)
+  const [usersFilterQuery, setUsersFilterQuery] = useState<string>("")
+  const [usersFilterStatus, setUsersFilterStatus] = useState<string>("all")
+  const [plans, setPlans] = useState<Course[]>([])
+  const [plansLoading, setPlansLoading] = useState<boolean>(false)
+  const [plansError, setPlansError] = useState<string>("")
+  const [planOpen, setPlanOpen] = useState<boolean>(false)
+  const [planName, setPlanName] = useState<string>("")
+  const [planDuration, setPlanDuration] = useState<number>(30)
+  const [planPrice, setPlanPrice] = useState<number>(0)
+  const [planSaving, setPlanSaving] = useState<boolean>(false)
 
-  // Real-time clock
+  // Add Member modal state
+  const [addOpen, setAddOpen] = useState<boolean>(false)
+  const [addLoading, setAddLoading] = useState<boolean>(false)
+  const [addError, setAddError] = useState<string>("")
+  const [formName, setFormName] = useState<string>("")
+  const [formEmail, setFormEmail] = useState<string>("")
+  const [formPhone, setFormPhone] = useState<string>("")
+
+  // Real-time clock - only initialize on client to prevent hydration mismatch
   useEffect(() => {
+    setMounted(true)
+    setCurrentTime(new Date())
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
+
+  // Fetch users from API
+  const fetchUsers = async () => {
+      try {
+        setUsersLoading(true)
+        setUsersError("")
+        const resp = await fetch('/api/users', { cache: 'no-store' })
+        const json = await resp.json()
+        if (!resp.ok) throw new Error(json?.error || 'Yuklashda xatolik')
+        setUsers(Array.isArray(json?.users) ? json.users : [])
+      } catch (e: any) {
+        setUsersError(e?.message || 'Yuklashda xatolik')
+      } finally {
+        setUsersLoading(false)
+      }
+  }
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  const fetchPlans = async () => {
+    try {
+      setPlansLoading(true)
+      setPlansError("")
+      const resp = await fetch('/api/plans', { cache: 'no-store' })
+      const json = await resp.json()
+      if (!resp.ok) throw new Error(json?.error || 'Tariflarni yuklashda xatolik')
+      setPlans(Array.isArray(json?.plans) ? json.plans : [])
+    } catch (e: any) {
+      setPlansError(e?.message || 'Tariflarni yuklashda xatolik')
+    } finally {
+      setPlansLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchPlans()
+  }, [])
+
+  const handleAddPlan = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      setPlanSaving(true)
+      setPlansError("")
+      const resp = await fetch('/api/plans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: planName, duration_days: planDuration, price: planPrice })
+      })
+      const json = await resp.json()
+      if (!resp.ok) throw new Error(json?.error || 'Tarif yaratishda xatolik')
+      setPlanOpen(false)
+      setPlanName("")
+      setPlanDuration(30)
+      setPlanPrice(0)
+      fetchPlans()
+    } catch (e: any) {
+      setPlansError(e?.message || 'Tarif yaratishda xatolik')
+    } finally {
+      setPlanSaving(false)
+    }
+  }
+
+  const handleAddMember = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      setAddLoading(true)
+      setAddError("")
+      const resp = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formName,
+          email: formEmail,
+          phone: formPhone,
+        })
+      })
+      const json = await resp.json()
+      if (!resp.ok) throw new Error(json?.error || 'Yaratishda xatolik')
+      setAddOpen(false)
+      setFormName("")
+      setFormEmail("")
+      setFormPhone("")
+      fetchUsers()
+    } catch (err: any) {
+      setAddError(err?.message || 'Yaratishda xatolik')
+    } finally {
+      setAddLoading(false)
+    }
+  }
 
   const sidebarItems: SidebarItem[] = [
     {
@@ -560,37 +554,30 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
       onClick: () => setActiveTab("dashboard")
     },
     {
-      title: "Mening Kurslari",
+      title: "Abonementlar",
       icon: <BookOpen />,
-      badge: "3",
+      badge: String(plans.length || 0),
       isActive: activeTab === "courses",
       onClick: () => setActiveTab("courses")
     },
     {
-      title: "O'quvchilar",
+      title: "A'zolar",
       icon: <Users />,
-      badge: "89",
+      badge: String(users.length || 0),
       isActive: activeTab === "students",
       onClick: () => setActiveTab("students")
-    },
-    {
-      title: "Sertifikatlar",
-      icon: <Award />,
-      badge: "247",
-      isActive: activeTab === "certificates",
-      onClick: () => setActiveTab("certificates")
-    },
-    {
-      title: "Topshiriqlar",
-      icon: <FileCheck />,
-      isActive: activeTab === "assignments",
-      onClick: () => setActiveTab("assignments")
     },
     {
       title: "Hisobotlar",
       icon: <BarChart3 />,
       isActive: activeTab === "reports",
       onClick: () => setActiveTab("reports")
+    },
+    {
+      title: "Moliyaviy",
+      icon: <BarChart />,
+      isActive: activeTab === "finance",
+      onClick: () => setActiveTab("finance")
     },
     {
       title: "Sozlamalar",
@@ -660,20 +647,26 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 <GraduationCap className="size-6" />
               </div>
               <div>
-                <h2 className="font-bold text-lg">CertifyUZ Admin</h2>
-                <p className="text-xs text-muted-foreground">O'quv Markazi Boshqaruvi</p>
+                <h2 className="font-bold text-lg">Gym Admin</h2>
+                <p className="text-xs text-muted-foreground">Sport Zali Boshqaruvi</p>
               </div>
             </div>
 
             <div className="text-xs text-muted-foreground mb-3">
-              {currentTime.toLocaleTimeString()} • {currentTime.toLocaleDateString()}
+              {mounted && currentTime ? (
+                <>
+                  {currentTime.toLocaleTimeString()} • {currentTime.toLocaleDateString()}
+                </>
+              ) : (
+                <span className="opacity-50">Loading...</span>
+              )}
             </div>
 
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="O'quvchi, kurs qidirish..."
+                placeholder="A'zo yoki abonement qidirish..."
                 className="w-full rounded-2xl bg-muted/50 pl-9 pr-4 py-2"
                 value={searchQuery}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
@@ -744,9 +737,9 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
           <div className="flex flex-1 items-center justify-between">
             <div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Admin Panel - IT Academy Tashkent
+                Gym Admin Panel
               </h1>
-              <p className="text-sm text-muted-foreground">O'quv jarayonini boshqaring va nazorat qiling</p>
+              <p className="text-sm text-muted-foreground">Zal ishlarini boshqaring va nazorat qiling</p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -809,7 +802,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         </Badge>
                         <Badge className="bg-emerald-500/20 text-emerald-100 hover:bg-emerald-500/30 rounded-xl">
                           <Activity className="h-3 w-3 mr-1" />
-                          3 Faol Kurs
+                          3 Faol Abonement
                         </Badge>
                       </div>
                       <h2 className="text-3xl font-bold">
@@ -821,7 +814,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       <div className="flex flex-wrap gap-3">
                         <Button className="rounded-2xl bg-white text-purple-700 hover:bg-white/90">
                           <Plus className="mr-2 h-4 w-4" />
-                          Yangi Kurs Qo'shish
+                          Yangi Abonement Qo'shish
                         </Button>
                         <Button variant="outline" className="rounded-2xl bg-transparent border-white text-white hover:bg-white/10">
                           <Award className="mr-2 h-4 w-4" />
@@ -854,9 +847,19 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                           </Badge>
                         </div>
                         <div className="space-y-2">
-                          <p className="text-2xl font-bold">{item.value}</p>
-                          <p className="text-sm text-muted-foreground">{item.name}</p>
-                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                          {(() => {
+                            const isUsersCard = item.name === "Faol A'zolar"
+                            const isPlansCard = item.name === "Abonementlar"
+                            const valueToShow = isUsersCard ? users.length : (isPlansCard ? plans.length : item.value)
+                            const descToShow = isUsersCard ? "Jami foydalanuvchilar soni (backend)" : (isPlansCard ? "Faol tariflar soni" : item.description)
+                            return (
+                              <>
+                                <p className="text-2xl font-bold">{valueToShow}</p>
+                                <p className="text-sm text-muted-foreground">{item.name}</p>
+                                <p className="text-xs text-muted-foreground">{descToShow}</p>
+                              </>
+                            )
+                          })()}
                           <Progress value={item.percentage} className="h-2" />
                           <p className="text-xs text-muted-foreground">
                             {item.percentage}% dan {item.target} maqsad
@@ -952,25 +955,25 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 </div>
               </div>
 
-              {/* Active Courses */}
+              {/* Active Plans (Abonementlar) */}
               <Card className="rounded-3xl border-2">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-xl">Faol Kurslar</CardTitle>
-                      <CardDescription>Hozirda olib borilayotgan kurslar</CardDescription>
+                      <CardTitle className="text-xl">Faol Abonementlar</CardTitle>
+                      <CardDescription>Hozirda amal qilayotgan tariflar</CardDescription>
                     </div>
                     <Button variant="outline" className="rounded-2xl">
                       <BookOpen className="mr-2 h-4 w-4" />
-                      Barcha Kurslar
+                      Barcha Abonementlar
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {adminCourses.map((course, index) => (
+                    {plans.slice(0, 6).map((plan, index) => (
                       <motion.div
-                        key={course.id}
+                        key={String(plan.id)}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -983,41 +986,26 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                                 <BookOpen className="h-6 w-6 text-primary" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <CardTitle className="text-base leading-tight truncate">{course.title}</CardTitle>
-                                {getStatusBadge(course.status)}
+                                <CardTitle className="text-base leading-tight truncate">{plan.name}</CardTitle>
                               </div>
                             </div>
                           </CardHeader>
                           <CardContent className="pb-3 space-y-3">
-                            <p className="text-sm text-muted-foreground line-clamp-2">{course.description}</p>
-
+                            <p className="text-sm text-muted-foreground">Davomiyligi: {plan.duration_days} kun</p>
                             <div className="space-y-2">
                               <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>O'quvchilar: {course.students}/{course.totalStudents}</span>
-                                <span>{course.progress}%</span>
+                                <span>Narxi</span>
+                                <span className="font-semibold">{Number(plan.price).toLocaleString()} so'm</span>
                               </div>
-                              <Progress value={course.progress} className="h-2" />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <p className="text-muted-foreground">Davomiyligi</p>
-                                <p className="font-semibold">{course.duration}</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Daraja</p>
-                                <p className="font-semibold">{course.level}</p>
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>Foydalanuvchilar</span>
+                                <span className="font-semibold">{Number(plan.users_count ?? 0)}</span>
                               </div>
                             </div>
-
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="grid grid-cols-1 gap-2 text-sm">
                               <div>
-                                <p className="text-muted-foreground">Sertifikatlar</p>
-                                <p className="font-semibold">{course.certificates}</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Kategoriya</p>
-                                <p className="font-semibold">{course.category}</p>
+                                <p className="text-muted-foreground">Yaratilgan</p>
+                                <p className="font-semibold text-xs">{plan.created_at || '—'}</p>
                               </div>
                             </div>
                           </CardContent>
@@ -1044,26 +1032,67 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
               {/* Courses Header */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold">Mening Kurslarim</h2>
-                  <p className="text-muted-foreground">Barcha kurslarni boshqaring va nazorat qiling</p>
+                  <h2 className="text-2xl font-bold">Abonementlar</h2>
+                  <p className="text-muted-foreground">Barcha abonement (tarif)larni boshqaring va nazorat qiling</p>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" className="rounded-2xl">
                     <Filter className="mr-2 h-4 w-4" />
                     Filtr
                   </Button>
-                  <Button className="rounded-2xl">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Yangi Kurs
-                  </Button>
+                  <Dialog open={planOpen} onOpenChange={setPlanOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="rounded-2xl">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Yangi Abonement
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="rounded-3xl">
+                      <DialogHeader>
+                        <DialogTitle>Yangi Abonement (tarif)</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleAddPlan} className="space-y-4">
+                        {plansError && (
+                          <div className="text-sm text-red-600">{plansError}</div>
+                        )}
+                        <div>
+                          <label className="text-sm">Nomi</label>
+                          <Input value={planName} onChange={(e) => setPlanName(e.target.value)} required placeholder="Masalan: Oylik Standart" />
+                        </div>
+                        <div>
+                          <label className="text-sm">Davomiyligi (kun)</label>
+                          <Input type="number" min={1} value={planDuration} onChange={(e) => setPlanDuration(Number(e.target.value))} required />
+                        </div>
+                        <div>
+                          <label className="text-sm">Narxi</label>
+                          <Input type="number" min={0} step="0.01" value={planPrice} onChange={(e) => setPlanPrice(Number(e.target.value))} required />
+                        </div>
+                        <DialogFooter>
+                          <Button type="button" variant="outline" className="rounded-2xl" onClick={() => setPlanOpen(false)}>Bekor qilish</Button>
+                          <Button type="submit" className="rounded-2xl" disabled={planSaving}>
+                            {planSaving ? 'Saqlanmoqda...' : 'Saqlash'}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
 
-              {/* Courses Grid */}
+              {/* Plans Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {adminCourses.map((course, index) => (
+                {plansLoading && (
+                  <div className="col-span-full text-center text-sm text-muted-foreground">Yuklanmoqda...</div>
+                )}
+                {!!plansError && (
+                  <div className="col-span-full text-center text-sm text-red-600">{plansError}</div>
+                )}
+                {!plansLoading && !plansError && plans.length === 0 && (
+                  <div className="col-span-full text-center text-sm text-muted-foreground">Abonementlar topilmadi</div>
+                )}
+                {plans.map((plan, index) => (
                   <motion.div
-                    key={course.id}
+                    key={String(plan.id)}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -1076,54 +1105,18 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                               <BookOpen className="h-8 w-8 text-primary" />
                             </div>
                             <div>
-                              <CardTitle className="text-lg">{course.title}</CardTitle>
-                              {getStatusBadge(course.status)}
+                              <CardTitle className="text-lg">{plan.name}</CardTitle>
                             </div>
                           </div>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-2">{course.description}</p>
+                        <p className="text-sm text-muted-foreground mt-2">Davomiyligi: {plan.duration_days} kun • Narxi: {Number(plan.price).toLocaleString()} so'm</p>
                       </CardHeader>
 
                       <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">O'quvchilar</span>
-                            <span className="font-medium">{course.students}/{course.totalStudents}</span>
-                          </div>
-                          <Progress value={(course.students / course.totalStudents) * 100} className="h-2" />
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Kurs jarayoni</span>
-                            <span className="font-medium">{course.progress}%</span>
-                          </div>
-                          <Progress value={course.progress} className="h-2" />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-                          <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Boshlanish</p>
-                            <p className="font-medium text-xs">{course.startDate}</p>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Tugash</p>
-                            <p className="font-medium text-xs">{course.endDate}</p>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-4 pt-2 border-t">
-                          <div className="text-center">
-                            <p className="text-lg font-bold text-blue-600">{course.certificates}</p>
-                            <p className="text-xs text-muted-foreground">Sertifikatlar</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-lg font-bold text-green-600">{course.duration}</p>
-                            <p className="text-xs text-muted-foreground">Davomiyligi</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-lg font-bold text-purple-600">{course.level}</p>
-                            <p className="text-xs text-muted-foreground">Daraja</p>
+                        <div className="grid grid-cols-1 gap-2 pt-2 border-t text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Yaratilgan</p>
+                            <p className="font-semibold text-xs">{plan.created_at || '—'}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -1150,11 +1143,11 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
               {/* Students Header */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold">O'quvchilar</h2>
-                  <p className="text-muted-foreground">Barcha o'quvchilar ro'yxati va ularning rivojlanishi</p>
+                  <h2 className="text-2xl font-bold">A'zolar</h2>
+                  <p className="text-muted-foreground">Barcha a'zolar ro'yxati va ularning rivojlanishi</p>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" className="rounded-2xl">
+                  <Button variant="outline" className="rounded-2xl" onClick={() => setUsersFilterOpen((v) => !v)}>
                     <Filter className="mr-2 h-4 w-4" />
                     Filtr
                   </Button>
@@ -1162,18 +1155,98 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     <DownloadIcon className="mr-2 h-4 w-4" />
                     Export
                   </Button>
-                  <Button className="rounded-2xl">
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    O'quvchi Qo'shish
-                  </Button>
+                  <Dialog open={addOpen} onOpenChange={setAddOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="rounded-2xl">
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        A'zo Qo'shish
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="rounded-3xl">
+                      <DialogHeader>
+                        <DialogTitle>Yangi A'zo Qo'shish</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleAddMember} className="space-y-4">
+                        {addError && (
+                          <div className="text-sm text-red-600">{addError}</div>
+                        )}
+                        <div>
+                          <label className="text-sm">Ism Familya</label>
+                          <Input value={formName} onChange={(e) => setFormName(e.target.value)} required placeholder="Masalan: Aliyev Aziz" />
+                        </div>
+                        <div>
+                          <label className="text-sm">Email</label>
+                          <Input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} required placeholder="example@mail.com" />
+                        </div>
+                        <div>
+                          <label className="text-sm">Telefon</label>
+                          <Input value={formPhone} onChange={(e) => setFormPhone(e.target.value)} placeholder="+998 90 000 00 00" />
+                        </div>
+                        <DialogFooter>
+                          <Button type="button" variant="outline" className="rounded-2xl" onClick={() => setAddOpen(false)}>Bekor qilish</Button>
+                          <Button type="submit" className="rounded-2xl" disabled={addLoading}>
+                            {addLoading ? 'Saqlanmoqda...' : 'Saqlash'}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
 
-              {/* Students Grid */}
+              {/* Filter Panel */}
+              {usersFilterOpen && (
+                <Card className="rounded-2xl border-2">
+                  <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-muted-foreground">Qidirish</label>
+                      <Input placeholder="Ism, email yoki telefon" value={usersFilterQuery} onChange={(e) => setUsersFilterQuery(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Holat</label>
+                      <Select value={usersFilterStatus} onValueChange={setUsersFilterStatus}>
+                        <SelectTrigger className="w-full"><SelectValue placeholder="Holat" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Barchasi</SelectItem>
+                          <SelectItem value="active">Faol</SelectItem>
+                          <SelectItem value="pending">Kutilmoqda</SelectItem>
+                          <SelectItem value="completed">Tugallangan</SelectItem>
+                          <SelectItem value="draft">Tayyorlanmoqda</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-end gap-2">
+                      <Button variant="secondary" className="rounded-2xl" onClick={() => { setUsersFilterQuery(""); setUsersFilterStatus("all") }}>Tozalash</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Members Grid (from Supabase users) */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {students.map((student, index) => (
+                {usersLoading && (
+                  <div className="col-span-full text-center text-sm text-muted-foreground">Yuklanmoqda...</div>
+                )}
+                {!!usersError && (
+                  <div className="col-span-full text-center text-sm text-red-600">{usersError}</div>
+                )}
+                {!usersLoading && !usersError && users.length === 0 && (
+                  <div className="col-span-full text-center text-sm text-muted-foreground">A'zolar topilmadi</div>
+                )}
+                {users
+                  .filter((u) => {
+                    const q = usersFilterQuery.trim().toLowerCase()
+                    const matchesQuery = q
+                      ? [u.name, u.email, u.phone]
+                          .filter(Boolean)
+                          .some((v) => String(v).toLowerCase().includes(q))
+                      : true
+                    const matchesStatus = usersFilterStatus === 'all' ? true : (String(u.status || '').toLowerCase() === usersFilterStatus)
+                    return matchesQuery && matchesStatus
+                  })
+                  .map((user, index) => (
                   <motion.div
-                    key={student.id}
+                    key={String(user.id)}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -1182,44 +1255,44 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       <CardHeader className="pb-3">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-12 w-12 border-2 border-primary/20">
-                            <AvatarImage src={student.avatar} alt={student.name} />
-                            <AvatarFallback>{formatInitials(student.name)}</AvatarFallback>
+                            <AvatarImage src={user.avatar || '/placeholder.svg?height=40&width=40'} alt={user.name} />
+                            <AvatarFallback>{formatInitials(user.name || '')}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <CardTitle className="text-base leading-tight truncate">{student.name}</CardTitle>
-                            {getStatusBadge(student.status)}
+                            <CardTitle className="text-base leading-tight truncate">{user.name}</CardTitle>
+                            {getStatusBadge((user.status || 'active'))}
                           </div>
                         </div>
                       </CardHeader>
 
                       <CardContent className="space-y-3">
                         <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Kurs</p>
-                          <p className="font-medium text-sm">{student.course}</p>
+                          <p className="text-sm text-muted-foreground">Abonement</p>
+                          <p className="font-medium text-sm">{user.course || '—'}</p>
                         </div>
 
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Rivojlanish</span>
-                            <span className="font-medium">{student.progress}%</span>
+                            <span className="font-medium">{user.progress ?? 0}%</span>
                           </div>
-                          <Progress value={student.progress} className="h-2" />
+                          <Progress value={Number(user.progress ?? 0)} className="h-2" />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
                             <p className="text-muted-foreground">Davomad</p>
-                            <p className="font-semibold">{student.attendance}%</p>
+                            <p className="font-semibold">{user.attendance ?? 0}%</p>
                           </div>
                           <div>
                             <p className="text-muted-foreground">Sertifikatlar</p>
-                            <p className="font-semibold">{student.certificates}</p>
+                            <p className="font-semibold">{user.certificates ?? 0}</p>
                           </div>
                         </div>
 
                         <div className="space-y-1">
                           <p className="text-sm text-muted-foreground">Oxirgi faollik</p>
-                          <p className="font-medium text-xs">{student.lastActivity}</p>
+                          <p className="font-medium text-xs">{user.last_activity || '—'}</p>
                         </div>
                       </CardContent>
 
@@ -1243,35 +1316,36 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
           )}
 
           {activeTab === "certificates" && (
-            <CertificateManagement />
-          )}
-
-          {activeTab === "assignments" && (
             <div className="space-y-6">
-              {/* Assignments Section */}
-              <div className="text-center space-y-4">
-                <h2 className="text-2xl font-bold">Topshiriqlar Boshqaruvi</h2>
-                <p className="text-muted-foreground">Topshiriqlarni yarating, tekshiring va baholang</p>
-
-                <div className="flex justify-center gap-4">
-                  <Button className="rounded-2xl">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Yangi Topshiriq
+              {/* Certificates Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold">Sertifikatlar Boshqaruvi</h2>
+                  <p className="text-muted-foreground">Barcha sertifikatlarni ko'ring, boshqaring va tekshiring</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="rounded-2xl">
+                    <Filter className="mr-2 h-4 w-4" />
+                    Filtr
                   </Button>
                   <Button variant="outline" className="rounded-2xl">
-                    <FileCheck className="mr-2 h-4 w-4" />
-                    Tekshirish Kerak
+                    <DownloadIcon className="mr-2 h-4 w-4" />
+                    Export
+                  </Button>
+                  <Button className="rounded-2xl">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Yangi Sertifikat
                   </Button>
                 </div>
               </div>
 
-              {/* Quick Stats */}
+              {/* Certificates Stats */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
-                  { title: "Jami Topshiriqlar", value: "24", icon: <FileText className="h-5 w-5" />, color: "text-blue-600" },
-                  { title: "Tekshirish Kutmoqda", value: "8", icon: <Clock className="h-5 w-5" />, color: "text-yellow-600" },
-                  { title: "Baholangan", value: "16", icon: <CheckCircle className="h-5 w-5" />, color: "text-green-600" },
-                  { title: "O'rtacha Ball", value: "87", icon: <Target className="h-5 w-5" />, color: "text-purple-600" },
+                  { title: "Jami Sertifikatlar", value: "247", icon: <Award className="h-5 w-5" />, color: "text-blue-600" },
+                  { title: "Berilgan", value: "189", icon: <CheckCircle className="h-5 w-5" />, color: "text-green-600" },
+                  { title: "Tayyorlanmoqda", value: "45", icon: <Clock className="h-5 w-5" />, color: "text-yellow-600" },
+                  { title: "QR Tekshirishlar", value: "1,247", icon: <QrCode className="h-5 w-5" />, color: "text-purple-600" },
                 ].map((stat, index) => (
                   <Card key={index} className="rounded-3xl border-2 text-center">
                     <CardContent className="p-6">
@@ -1285,30 +1359,51 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 ))}
               </div>
 
-              {/* Assignments List */}
+              {/* Certificates List */}
               <Card className="rounded-3xl border-2">
                 <CardHeader>
-                  <CardTitle className="text-xl">Oxirgi Topshiriqlar</CardTitle>
-                  <CardDescription>Eng so'nggi yaratilgan va yuborilgan topshiriqlar</CardDescription>
+                  <CardTitle className="text-xl">Sertifikatlar Ro'yxati</CardTitle>
+                  <CardDescription>Barcha yaratilgan va berilgan sertifikatlar</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {assignments.map((assignment, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 rounded-2xl border hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-4">
+                    {certificatesHistory.map((certificate, index) => (
+                      <div key={certificate.id} className="flex items-center justify-between p-4 rounded-2xl border hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-4 flex-1">
                           <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                            <FileCheck className="h-6 w-6 text-primary" />
+                            <Award className="h-6 w-6 text-primary" />
                           </div>
-                          <div>
-                            <h4 className="font-medium">{assignment.title}</h4>
-                            <p className="text-sm text-muted-foreground">{assignment.course}</p>
-                            <p className="text-xs text-muted-foreground">Muddat: {assignment.deadline}</p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-medium">{certificate.studentName}</h4>
+                              {getStatusBadge(certificate.status)}
+                            </div>
+                            <p className="text-sm text-muted-foreground">{certificate.course}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              ID: {certificate.id} • {certificate.issueDate}
+                            </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-medium">{assignment.submitted}/{assignment.total}</p>
-                          <p className="text-sm text-muted-foreground">Yuborildi</p>
-                          {getStatusBadge(assignment.status)}
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className="text-sm font-medium">Ball: {certificate.score}</p>
+                            <p className="text-xs text-muted-foreground">Baholar: {certificate.grade}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium">{certificate.downloads}</p>
+                            <p className="text-xs text-muted-foreground">Yuklab olingan</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="icon" className="rounded-2xl">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="icon" className="rounded-2xl">
+                              <DownloadIcon className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="icon" className="rounded-2xl">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -1318,13 +1413,15 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
             </div>
           )}
 
+          {/* assignments bo'limi olib tashlandi */}
+
           {activeTab === "reports" && (
             <div className="space-y-6">
               {/* Reports Header */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <h2 className="text-2xl font-bold">Hisobotlar va Tahlillar</h2>
-                  <p className="text-muted-foreground">O'quv jarayoni va natijalar bo'yicha batafsil ma'lumotlar</p>
+                  <p className="text-muted-foreground">Zal faoliyati va natijalar bo'yicha batafsil ma'lumotlar</p>
                 </div>
                 <Button className="rounded-2xl">
                   <DownloadIcon className="mr-2 h-4 w-4" />
@@ -1360,6 +1457,161 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     </Card>
                   </motion.div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "finance" && (
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold">Moliyaviy Boshqaruv</h2>
+                  <p className="text-muted-foreground">To'lovlar, daromad va xarajatlarni kuzatib boring</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="rounded-2xl">
+                    <Filter className="mr-2 h-4 w-4" />
+                    Filtr
+                  </Button>
+                  <Button className="rounded-2xl">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Yangi To'lov
+                  </Button>
+                </div>
+              </div>
+
+              {/* Top KPI cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card className="rounded-3xl border-2">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="p-2 rounded-xl bg-emerald-100">
+                        <TrendingUp className="h-5 w-5 text-emerald-600" />
+                      </div>
+                      <Badge className="rounded-xl">+12%</Badge>
+                    </div>
+                    <div className="mt-4">
+                      <p className="text-sm text-muted-foreground">Oylik Daromad</p>
+                      <p className="text-2xl font-bold">45,200,000 <span className="text-xs font-medium">UZS</span></p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="rounded-3xl border-2">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="p-2 rounded-xl bg-primary/10">
+                        <UserCheck className="h-5 w-5 text-primary" />
+                      </div>
+                      <Badge className="rounded-xl">+24</Badge>
+                    </div>
+                    <div className="mt-4">
+                      <p className="text-sm text-muted-foreground">To'langan O'quvchilar</p>
+                      <p className="text-2xl font-bold">198 <span className="text-xs font-medium">ta</span></p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="rounded-3xl border-2">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="p-2 rounded-xl bg-orange-100">
+                        <Clock className="h-5 w-5 text-orange-600" />
+                      </div>
+                      <Badge className="rounded-xl">49 ta</Badge>
+                    </div>
+                    <div className="mt-4">
+                      <p className="text-sm text-muted-foreground">Kutilayotgan To'lovlar</p>
+                      <p className="text-2xl font-bold">12,500,000 <span className="text-xs font-medium">UZS</span></p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="rounded-3xl border-2">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="p-2 rounded-xl bg-red-100">
+                        <AlertCircle className="h-5 w-5 text-red-600" />
+                      </div>
+                      <Badge className="rounded-xl">-5%</Badge>
+                    </div>
+                    <div className="mt-4">
+                      <p className="text-sm text-muted-foreground">Oylik Xarajatlar</p>
+                      <p className="text-2xl font-bold">18,750,000 <span className="text-xs font-medium">UZS</span></p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Body */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Recent payments */}
+                <Card className="rounded-3xl border-2">
+                  <CardHeader>
+                    <CardTitle className="text-xl">Oxirgi To'lovlar</CardTitle>
+                    <CardDescription>Eng so'nggi qabul qilingan to'lovlar</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {[
+                      { initials: 'AJ', name: 'Abdullayev Jasur', plan: 'Frontend Development', ago: '1 soat oldin', amount: 2500000, status: 'To\'landi' },
+                      { initials: 'KM', name: 'Karimova Malika', plan: 'Digital Marketing', ago: '3 soat oldin', amount: 2200000, status: 'To\'landi' },
+                      { initials: 'RB', name: 'Rahmonov Bekzod', plan: 'Graphic Design', ago: '5 soat oldin', amount: 2500000, status: 'Kutilmoqda' },
+                      { initials: 'ND', name: 'Nazarova Dilnoza', plan: 'Frontend Development', ago: '1 kun oldin', amount: 2500000, status: 'To\'landi' },
+                    ].map((p, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-4 rounded-2xl border hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <Avatar className="h-10 w-10 border-2 border-primary/20">
+                            <AvatarFallback>{p.initials}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">{p.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{p.plan}</p>
+                            <p className="text-xs text-muted-foreground">{p.ago}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-emerald-600">{p.amount.toLocaleString()} UZS</p>
+                          <Badge variant="secondary" className="rounded-xl">{p.status}</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                {/* Payments statistics */}
+                <Card className="rounded-3xl border-2">
+                  <CardHeader>
+                    <CardTitle className="text-xl">To'lovlar Statistikasi</CardTitle>
+                    <CardDescription>Oylik to'lovlar tahlili</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {[{label: 'Yanvar', value: 82}, {label: 'Fevral', value: 86}, {label: 'Mart', value: 87}, {label: 'Aprel', value: 90}].map((m) => (
+                      <div key={m.label} className="space-y-2">
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <span>{m.label}</span>
+                          <span>{m.value}%</span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-muted">
+                          <div className="h-2 rounded-full bg-primary" style={{ width: `${m.value}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                    <div className="rounded-2xl bg-emerald-50 p-4 border border-emerald-200">
+                      <p className="text-sm text-muted-foreground">Sof foyda</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-lg font-semibold text-emerald-700">26.45M UZS</p>
+                        <Badge variant="secondary" className="rounded-xl">Joriy oy</Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <Button variant="secondary" className="w-full rounded-2xl">
+                        <DownloadIcon className="mr-2 h-4 w-4" />
+                        Hisobot Yuklab Olish
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           )}

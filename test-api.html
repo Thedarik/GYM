@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API</title>
+</head>
+<body>
+    <h1>Test API</h1>
+    <button onclick="testUsers()">Test Create User</button>
+    <button onclick="testMemberCreate()">Test Create Member</button>
+    <button onclick="testMemberList()">List Members</button>
+    <pre id="result"></pre>
+    
+    <script>
+        async function testUsers() {
+            try {
+                const resp = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'Test User',
+                        email: 'test@example.com',
+                        phone: '+998901234567',
+                        course: 'Test Course'
+                    })
+                })
+                
+                const data = await resp.json()
+                document.getElementById('result').textContent = 
+                    `Status: ${resp.status}\n\n${JSON.stringify(data, null, 2)}`
+            } catch (err) {
+                document.getElementById('result').textContent = 'Error: ' + err.message
+            }
+        }
+
+        async function testMemberCreate() {
+            try {
+                const resp = await fetch('/api/members', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        full_name: 'Test Member',
+                        phone: '+998900000001',
+                        email: 'member@example.com'
+                    })
+                })
+                const data = await resp.json()
+                document.getElementById('result').textContent = 
+                    `Status: ${resp.status}\n\n${JSON.stringify(data, null, 2)}`
+            } catch (err) {
+                document.getElementById('result').textContent = 'Error: ' + err.message
+            }
+        }
+
+        async function testMemberList() {
+            try {
+                const resp = await fetch('/api/members')
+                const data = await resp.json()
+                document.getElementById('result').textContent = 
+                    `Status: ${resp.status}\n\n${JSON.stringify(data, null, 2)}`
+            } catch (err) {
+                document.getElementById('result').textContent = 'Error: ' + err.message
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+

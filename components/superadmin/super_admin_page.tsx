@@ -61,7 +61,7 @@ import { cn } from "@/lib/utils"
 // Sample data for certificate management system
 const analyticsData = [
   { 
-    name: "O'quv Markazlari", 
+    name: "Filiallar", 
     value: 87, 
     change: +12, 
     trend: "up", 
@@ -69,7 +69,7 @@ const analyticsData = [
     description: "Shartnoma qilgan markazlar"
   },
   { 
-    name: "Admin Foydalanuvchilar", 
+    name: "Trenerlar/Adminlar", 
     value: 145, 
     change: +23, 
     trend: "up", 
@@ -77,7 +77,7 @@ const analyticsData = [
     description: "Yaratilgan adminlar"
   },
   { 
-    name: "Sertifikatlar", 
+    name: "A'zolar", 
     value: "12,458", 
     change: "+1,247", 
     trend: "up", 
@@ -85,7 +85,7 @@ const analyticsData = [
     description: "Umumiy sertifikatlar"
   },
   { 
-    name: "QR Skanlar", 
+    name: "Check-inlar", 
     value: "48,692", 
     change: "+3,821", 
     trend: "up", 
@@ -94,7 +94,7 @@ const analyticsData = [
   },
 ]
 
-// O'quv markazlari ma'lumotlari
+// Filiallar ro'yxati
 const educationCenters = [
   {
     id: 1,
@@ -244,10 +244,13 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [notifications, setNotifications] = useState(8)
   const [searchQuery, setSearchQuery] = useState("")
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const [currentTime, setCurrentTime] = useState<Date | null>(null)
+  const [mounted, setMounted] = useState(false)
 
-  // Real-time clock
+  // Real-time clock (client-only to avoid hydration mismatch)
   useEffect(() => {
+    setMounted(true)
+    setCurrentTime(new Date())
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
@@ -260,7 +263,7 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
       onClick: () => setActiveTab("dashboard")
     },
     {
-      title: "O'quv Markazlari",
+      title: "Filiallar",
       icon: <Building2 />,
       badge: "87",
       isActive: activeTab === "centers",
@@ -274,14 +277,7 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
       onClick: () => setActiveTab("admins")
     },
     {
-      title: "Sertifikatlar",
-      icon: <Award />,
-      badge: "12.4K",
-      isActive: activeTab === "certificates",
-      onClick: () => setActiveTab("certificates")
-    },
-    {
-      title: "QR Tekshirish",
+      title: "Check-in",
       icon: <QrCode />,
       isActive: activeTab === "verification",
       onClick: () => setActiveTab("verification")
@@ -333,13 +329,19 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
                 <Shield className="size-6" />
               </div>
               <div>
-                <h2 className="font-bold text-lg">CertifyUZ</h2>
-                <p className="text-xs text-muted-foreground">Sertifikat Boshqaruv Tizimi</p>
+                <h2 className="font-bold text-lg">Gym Manager</h2>
+                <p className="text-xs text-muted-foreground">Sport Zali Boshqaruv Tizimi</p>
               </div>
             </div>
             
             <div className="text-xs text-muted-foreground mb-3">
-              {currentTime.toLocaleTimeString()} • {currentTime.toLocaleDateString()}
+              {mounted && currentTime ? (
+                <>
+                  {currentTime.toLocaleTimeString()} • {currentTime.toLocaleDateString()}
+                </>
+              ) : (
+                <span className="opacity-50">Loading...</span>
+              )}
             </div>
 
             <div className="relative">
@@ -417,9 +419,9 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
           <div className="flex flex-1 items-center justify-between">
             <div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Sertifikat Boshqaruv Tizimi
+                Gym Boshqaruv Tizimi
               </h1>
-              <p className="text-sm text-muted-foreground">Uzbekiston uchun yagona sertifikat platformasi</p>
+              <p className="text-sm text-muted-foreground">Filiallar, a'zolar va check-inlar bir joyda</p>
             </div>
             
             <div className="flex items-center gap-2">
@@ -482,7 +484,7 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
                         </Badge>
                         <Badge className="bg-emerald-500/20 text-emerald-100 hover:bg-emerald-500/30 rounded-xl">
                           <Activity className="h-3 w-3 mr-1" />
-                          87 Faol Markaz
+                          5 Faol Filial
                         </Badge>
                       </div>
                       <h2 className="text-3xl font-bold">
@@ -494,7 +496,7 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
                       <div className="flex flex-wrap gap-3">
                         <Button className="rounded-2xl bg-white text-purple-700 hover:bg-white/90">
                           <Plus className="mr-2 h-4 w-4" />
-                          Yangi Markaz Qo'shish
+                          Yangi Filial Qo'shish
                         </Button>
                         <Button variant="outline" className="rounded-2xl bg-transparent border-white text-white hover:bg-white/10">
                           <DownloadIcon className="mr-2 h-4 w-4" />
@@ -544,8 +546,8 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <div>
-                          <CardTitle className="text-xl">Oxirgi Sertifikatlar</CardTitle>
-                          <CardDescription>Eng so'nggi kiritilgan sertifikatlar</CardDescription>
+                      <CardTitle className="text-xl">Oxirgi Check-inlar</CardTitle>
+                      <CardDescription>Eng so'nggi gym kirishlari</CardDescription>
                         </div>
                         <Button variant="outline" className="rounded-2xl">
                           <Eye className="mr-2 h-4 w-4" />
@@ -565,7 +567,7 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
                           >
                             <div className="relative">
                               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                                <Award className="h-6 w-6 text-primary" />
+                                <QrCode className="h-6 w-6 text-primary" />
                               </div>
                               <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-lg bg-muted flex items-center justify-center">
                                 <Hash className="h-3 w-3" />
@@ -589,7 +591,7 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
                                   <span>•</span>
                                   <span className="flex items-center gap-1">
                                     <QrCode className="h-3 w-3" />
-                                    {cert.qrScanned} marta skanerlangladi
+                                    {cert.qrScanned} ta check-in
                                   </span>
                                 </p>
                               </div>
@@ -645,12 +647,12 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-xl">Eng Faol O'quv Markazlari</CardTitle>
-                      <CardDescription>Eng ko'p sertifikat bergan markazlar</CardDescription>
+                      <CardTitle className="text-xl">Eng Faol Filiallar</CardTitle>
+                      <CardDescription>Eng ko'p check-in qayd etilgan filiallar</CardDescription>
                     </div>
                     <Button variant="outline" className="rounded-2xl">
                       <Building2 className="mr-2 h-4 w-4" />
-                      Barcha Markazlar
+                      Barcha Filiallar
                     </Button>
                   </div>
                 </CardHeader>
@@ -738,8 +740,8 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
               {/* Centers Header */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold">O'quv Markazlari</h2>
-                  <p className="text-muted-foreground">Shartnoma qilgan barcha o'quv markazlari</p>
+                  <h2 className="text-2xl font-bold">Filiallar</h2>
+                  <p className="text-muted-foreground">Barcha sport zali filiallari</p>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" className="rounded-2xl">
@@ -748,7 +750,7 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
                   </Button>
                   <Button className="rounded-2xl">
                     <Plus className="mr-2 h-4 w-4" />
-                    Yangi Markaz
+                    Yangi Filial
                   </Button>
                 </div>
               </div>
@@ -810,7 +812,7 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
                           </div>
                           <div className="text-center">
                             <p className="text-lg font-bold text-green-600">{center.certificates}</p>
-                            <p className="text-xs text-muted-foreground">Sertifikatlar</p>
+                            <p className="text-xs text-muted-foreground">A'zolar</p>
                           </div>
                           <div className="text-center">
                             <p className="text-lg font-bold text-blue-600">{center.qrScans}</p>
@@ -863,10 +865,10 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
                     <table className="w-full">
                       <thead className="border-b bg-muted/50">
                         <tr>
-                          <th className="text-left p-4 font-medium">Sertifikat ID</th>
-                          <th className="text-left p-4 font-medium">Talaba F.I.Sh</th>
-                          <th className="text-left p-4 font-medium">O'quv Markazi</th>
-                          <th className="text-left p-4 font-medium">Yo'nalish</th>
+                          <th className="text-left p-4 font-medium">Check-in ID</th>
+                          <th className="text-left p-4 font-medium">A'zo F.I.Sh</th>
+                          <th className="text-left p-4 font-medium">Filial</th>
+                          <th className="text-left p-4 font-medium">Faoliyat</th>
                           <th className="text-left p-4 font-medium">Sana</th>
                           <th className="text-left p-4 font-medium">Holat</th>
                           <th className="text-left p-4 font-medium">QR Skanlar</th>
@@ -922,7 +924,7 @@ export function CertificateDashboard({ onLogout }: CertificateDashboardProps) {
               {/* QR Verification Section */}
               <div className="text-center space-y-4">
                 <h2 className="text-2xl font-bold">QR Kod Tekshirish</h2>
-                <p className="text-muted-foreground">Sertifikat haqiqiyligini QR kod orqali tekshiring</p>
+                <p className="text-muted-foreground">QR kod orqali a'zolarning kirishlarini tekshiring</p>
                 
                 <Card className="max-w-md mx-auto rounded-3xl border-2 border-dashed border-primary/50">
                   <CardContent className="p-8 text-center space-y-4">

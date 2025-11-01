@@ -439,6 +439,15 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [planPrice, setPlanPrice] = useState<number>(0)
   const [planSaving, setPlanSaving] = useState<boolean>(false)
 
+  // Edit Plan modal state
+  const [editOpen, setEditOpen] = useState<boolean>(false)
+  const [editPlanId, setEditPlanId] = useState<string | number | null>(null)
+  const [editName, setEditName] = useState<string>("")
+  const [editDuration, setEditDuration] = useState<number>(30)
+  const [editPrice, setEditPrice] = useState<number>(0)
+  const [editSaving, setEditSaving] = useState<boolean>(false)
+  const [editError, setEditError] = useState<string>("")
+
   // Add Member modal state
   const [addOpen, setAddOpen] = useState<boolean>(false)
   const [addLoading, setAddLoading] = useState<boolean>(false)
@@ -543,6 +552,50 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
       setAddError(err?.message || 'Yaratishda xatolik')
     } finally {
       setAddLoading(false)
+    }
+  }
+
+  const openEditPlan = (plan: Course) => {
+    setEditPlanId(plan.id)
+    setEditName(plan.name)
+    setEditDuration(Number(plan.duration_days))
+    setEditPrice(Number(plan.price))
+    setEditError("")
+    setEditOpen(true)
+  }
+
+  const handleEditPlan = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (editPlanId == null) return
+    try {
+      setEditSaving(true)
+      setEditError("")
+      const url = `/api/plans/${editPlanId}`
+      let resp = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editName, duration_days: editDuration, price: editPrice })
+      })
+      if (resp.status === 405) {
+        resp = await fetch(url, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: editName, duration_days: editDuration, price: editPrice })
+        })
+      }
+      const contentType = resp.headers.get('content-type') || ''
+      const payload = contentType.includes('application/json') ? await resp.json() : await resp.text()
+      if (!resp.ok) {
+        const message = typeof payload === 'string' ? payload : (payload?.error || 'Tarifni tahrirlashda xatolik')
+        throw new Error(message)
+      }
+      setEditOpen(false)
+      setEditPlanId(null)
+      fetchPlans()
+    } catch (e: any) {
+      setEditError(e?.message || 'Tarifni tahrirlashda xatolik')
+    } finally {
+      setEditSaving(false)
     }
   }
 
@@ -1126,7 +1179,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                           <Eye className="mr-2 h-4 w-4" />
                           Boshqarish
                         </Button>
-                        <Button variant="outline" className="flex-1 rounded-2xl">
+                        <Button variant="outline" className="flex-1 rounded-2xl" onClick={() => openEditPlan(plan)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Tahrirlash
                         </Button>
@@ -1135,6 +1188,37 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   </motion.div>
                 ))}
               </div>
+              {/* Edit Plan Dialog */}
+              <Dialog open={editOpen} onOpenChange={setEditOpen}>
+                <DialogContent className="rounded-3xl">
+                  <DialogHeader>
+                    <DialogTitle>Abonementni Tahrirlash</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleEditPlan} className="space-y-4">
+                    {editError && (
+                      <div className="text-sm text-red-600">{editError}</div>
+                    )}
+                    <div>
+                      <label className="text-sm">Nomi</label>
+                      <Input value={editName} onChange={(e) => setEditName(e.target.value)} required placeholder="Masalan: Oylik Standart" />
+                    </div>
+                    <div>
+                      <label className="text-sm">Davomiyligi (kun)</label>
+                      <Input type="number" min={1} value={editDuration} onChange={(e) => setEditDuration(Number(e.target.value))} required />
+                    </div>
+                    <div>
+                      <label className="text-sm">Narxi</label>
+                      <Input type="number" min={0} step="0.01" value={editPrice} onChange={(e) => setEditPrice(Number(e.target.value))} required />
+                    </div>
+                    <DialogFooter>
+                      <Button type="button" variant="outline" className="rounded-2xl" onClick={() => setEditOpen(false)}>Bekor qilish</Button>
+                      <Button type="submit" className="rounded-2xl" disabled={editSaving}>
+                        {editSaving ? 'Saqlanmoqda...' : 'Yangilash'}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
           )}
 
